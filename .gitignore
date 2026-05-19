@@ -3,6 +3,8 @@
 
 CommandGatheringData/
 dist/
+docs/superpowers/
+Vendor/SwiftTerm/.swiftpm/
 
 *.xcuserstate
 *.swp
