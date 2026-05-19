@@ -56,7 +56,7 @@ dist/CommandGathering.app
 ## 下载说明
 
 - Release 里提供的是干净版 `.app` 压缩包，首次运行会自动生成默认命令配置。
-- 当前发布包未做开发者签名；如果 macOS 首次拦截，使用“右键 -> 打开”即可。
+- 当前仓库内置的 release 脚本会优先尝试 `Developer ID Application` 签名；如果本机没有该证书，则会回退为 ad-hoc 签名，仅适合本地验证，不等同于可直接公开分发。
 
 ## 当前默认命令行为
 

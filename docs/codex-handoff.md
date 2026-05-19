@@ -9,6 +9,7 @@
 - 核心模型和 tab 绑定逻辑有 XCTest 覆盖。
 - 发布到 GitHub 时，必须忽略 `CommandGatheringData/` 和 `dist/`，不要提交用户自定义命令、终端历史或本地打包产物。
 - GitHub Releases 应上传 `scripts/build-release.sh` 产出的干净 zip；这个脚本会单独生成 `dist/release/CommandGathering-Clean.app`，不要碰用户正在使用的 `dist/CommandGathering.app`。
+- `scripts/build-release.sh` 生成本地干净包时，会在 `dist/release/CommandGathering-Clean.app` 下装配 bundle，但压缩给下载者的 zip 内部名称保持为 `CommandGathering.app`。
 
 ## 入口文件
 - `Package.swift`：包定义和本地 SwiftTerm 依赖。
@@ -81,6 +82,18 @@ dist/CommandGathering.app
 dist/release/CommandGathering-v<version>-macOS.zip
 ```
 
+## Release 签名边界
+- 当前脚本会先查本机 `Developer ID Application` 证书。
+- 如果找到了，会使用 `codesign --options runtime --timestamp` 做正式签名。
+- 如果同时提供 `CG_NOTARY_PROFILE`，脚本会继续执行 `notarytool submit --wait`、`stapler staple`，然后重新打 zip。
+- 如果本机没有 `Developer ID Application` 证书，脚本会明确退回 ad-hoc 签名；这种产物只适合本地验证，`spctl` 仍会拒绝，不应当当成可直接公开分发的 release。
+- 可用环境变量：
+  - `CG_SIGN_IDENTITY`
+  - `CG_NOTARY_PROFILE`
+  - `CG_NOTARY_KEYCHAIN`
+  - `CG_BUNDLE_IDENTIFIER`
+  - `CG_REQUIRE_DEVELOPER_ID=1`
+
 ## 已知取舍
 - SwiftTerm 以 `Vendor/SwiftTerm` 本地依赖方式引入，因为当前网络下 SwiftPM 拉 GitHub 经常失败。
 - `Vendor/SwiftTerm/Package.swift` 已裁剪成只构建 `SwiftTerm` library，避免拉 `swift-argument-parser` 和 docc 插件。
@@ -89,3 +102,4 @@ dist/release/CommandGathering-v<version>-macOS.zip
 - 终端启动改为用户 shell + `-i` 交互模式，避免用 `-zsh` 登录 shell 额外触发登录初始化；`~/.zshrc` 仍会生效。
 - 2026-05-19 收口时，默认打包命令与临时命令默认目录已改成运行时推导，不再把某台机器的 `/Users/...` 路径写死到源码里，便于公开仓库发布。
 - 2026-05-19 新增 `scripts/build-release.sh`，独立构建 `dist/release/CommandGathering-Clean.app` 和 release zip，保证 Release 下载包是干净版本，同时不覆盖本地正在使用的 `.app`。
+- 2026-05-19 已确认当前机器只有 `Apple Development` 与 `iPhone Distribution` 身份，没有 `Developer ID Application` 叶子证书；因此当前 release 仍不是可直接双击分发给任意 Mac 的正式包。
