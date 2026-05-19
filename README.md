@@ -6,8 +6,6 @@ macOS SwiftUI 原生命令面板工具，用来按分组管理常用命令，并
 
 ![Command Gathering 界面预览](docs/images/app-screenshot.png)
 
-> `docs/images/app-screenshot.png` 建议使用当前这张产品截图；README 已预留引用路径。
-
 ## 功能
 
 - 左侧命令分组支持新建、重命名、删除和拖拽排序。
@@ -38,6 +36,7 @@ rtk swift run CommandGatheringApp
 
 ```bash
 rtk scripts/build-app.sh
+rtk scripts/build-release.sh
 ```
 
 产物路径：
@@ -51,7 +50,13 @@ dist/CommandGathering.app
 - `swift run` 时，配置写入当前工作目录下的 `CommandGatheringData/commands.json`。
 - 打包 `.app` 运行时，配置写入 `CommandGathering.app/CommandGatheringData/commands.json`。
 - `scripts/build-app.sh` 重建 `dist/CommandGathering.app` 时会保留已有 `CommandGatheringData`。
+- `scripts/build-release.sh` 会单独生成 `dist/release/CommandGathering-Clean.app` 和对应 zip，不会覆盖你本地正在使用的 `dist/CommandGathering.app`。
 - 仓库默认忽略 `CommandGatheringData/` 和 `dist/`，避免把用户自定义命令、终端历史和打包产物提交到 GitHub。
+
+## 下载说明
+
+- Release 里提供的是干净版 `.app` 压缩包，首次运行会自动生成默认命令配置。
+- 当前发布包未做开发者签名；如果 macOS 首次拦截，使用“右键 -> 打开”即可。
 
 ## 当前默认命令行为
 
@@ -62,5 +67,3 @@ dist/CommandGathering.app
 cd <当前项目目录>/scripts
 bash build-app.sh
 ```
-
-这样公开仓库不会写死某一台机器上的绝对路径。

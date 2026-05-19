@@ -10,11 +10,13 @@
 - 调试构建：`rtk swift build`
 - 运行 App：`rtk swift run CommandGatheringApp`
 - 打包 `.app`：`rtk scripts/build-app.sh`
+- 打包 GitHub Release 干净压缩包：`rtk scripts/build-release.sh`
 
 ## 数据存储
 - `swift run` 时，命令配置写入当前工作目录：`CommandGatheringData/commands.json`
 - 打包 `.app` 运行时，命令配置写入：`CommandGathering.app/CommandGatheringData/commands.json`
 - `scripts/build-app.sh` 重建 `dist/CommandGathering.app` 时会保留已有 `CommandGatheringData`。
+- `scripts/build-release.sh` 必须走独立输出路径，生成 `dist/release/CommandGathering-Clean.app` 及其 zip；不要覆盖用户正在使用的 `dist/CommandGathering.app`，也不要把本地带数据的 `.app` 直接当发布资产。
 - 不要把用户运行后生成的 `CommandGatheringData` 当成源码改动提交。
 - `CommandStore` 的迁移逻辑必须尊重用户对默认命令的删除、改名和编辑；不要在每次启动时重新补齐默认命令。只有检测到旧默认 `git status --short` 时才做一次旧配置迁移。
 

@@ -8,6 +8,7 @@
 - 终端使用 vendored SwiftTerm 的 `LocalProcessTerminalView`，运行真实 pseudo-terminal shell。
 - 核心模型和 tab 绑定逻辑有 XCTest 覆盖。
 - 发布到 GitHub 时，必须忽略 `CommandGatheringData/` 和 `dist/`，不要提交用户自定义命令、终端历史或本地打包产物。
+- GitHub Releases 应上传 `scripts/build-release.sh` 产出的干净 zip；这个脚本会单独生成 `dist/release/CommandGathering-Clean.app`，不要碰用户正在使用的 `dist/CommandGathering.app`。
 
 ## 入口文件
 - `Package.swift`：包定义和本地 SwiftTerm 依赖。
@@ -71,11 +72,13 @@ rtk swift test
 rtk swift build
 rtk swift run CommandGatheringApp
 rtk scripts/build-app.sh
+rtk scripts/build-release.sh
 ```
 
 打包输出：
 ```text
 dist/CommandGathering.app
+dist/release/CommandGathering-v<version>-macOS.zip
 ```
 
 ## 已知取舍
@@ -85,3 +88,4 @@ dist/CommandGathering.app
 - 之前点击命令可能卡死的根因候选是 `NSViewRepresentable.makeNSView/updateNSView` 内直接调用 `model.consumePendingCommand` 修改 `@Observable` 状态，容易触发 SwiftUI 更新重入；现在启动命令保存在 `TerminalSession.startupCommand`，终端视图只读 session 数据并自行保证只发送一次。
 - 终端启动改为用户 shell + `-i` 交互模式，避免用 `-zsh` 登录 shell 额外触发登录初始化；`~/.zshrc` 仍会生效。
 - 2026-05-19 收口时，默认打包命令与临时命令默认目录已改成运行时推导，不再把某台机器的 `/Users/...` 路径写死到源码里，便于公开仓库发布。
+- 2026-05-19 新增 `scripts/build-release.sh`，独立构建 `dist/release/CommandGathering-Clean.app` 和 release zip，保证 Release 下载包是干净版本，同时不覆盖本地正在使用的 `.app`。
