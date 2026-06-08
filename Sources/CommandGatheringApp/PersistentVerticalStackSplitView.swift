@@ -84,10 +84,26 @@ struct PersistentVerticalStackSplitView<Top: View, Bottom: View>: View {
     }
 
     private func constrainedHeight(_ proposedHeight: CGFloat, totalHeight: CGFloat) -> CGFloat {
-        let availableMaxHeight = max(minTopHeight, totalHeight - minBottomHeight)
-        let upperBound = min(maxTopHeight, availableMaxHeight)
-        return min(max(proposedHeight, minTopHeight), upperBound)
+        clampTopHeight(
+            proposedHeight,
+            minTopHeight: minTopHeight,
+            maxTopHeight: maxTopHeight,
+            minBottomHeight: minBottomHeight,
+            totalHeight: totalHeight
+        )
     }
+}
+
+func clampTopHeight(
+    _ proposedHeight: CGFloat,
+    minTopHeight: CGFloat,
+    maxTopHeight: CGFloat,
+    minBottomHeight: CGFloat,
+    totalHeight: CGFloat
+) -> CGFloat {
+    let availableMaxHeight = max(minTopHeight, totalHeight - minBottomHeight)
+    let upperBound = min(maxTopHeight, availableMaxHeight)
+    return min(max(proposedHeight, minTopHeight), upperBound)
 }
 
 private struct ResizeDivider: View {

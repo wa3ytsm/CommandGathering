@@ -62,11 +62,11 @@ struct RootView: View {
 
     private var detailContent: some View {
         PersistentVerticalStackSplitView(
-            storageKey: "commandListHeight.compactV2",
-            defaultTopHeight: 100,
-            minTopHeight: 92,
-            maxTopHeight: 140,
-            minBottomHeight: 260
+            storageKey: CommandListSplitLayout.storageKey,
+            defaultTopHeight: CommandListSplitLayout.defaultTopHeight,
+            minTopHeight: CommandListSplitLayout.minTopHeight,
+            maxTopHeight: CommandListSplitLayout.maxTopHeight,
+            minBottomHeight: CommandListSplitLayout.minBottomHeight
         ) {
             CommandListView(model: model)
         } bottom: {

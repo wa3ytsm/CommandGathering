@@ -25,6 +25,10 @@ let package = Package(
         .testTarget(
             name: "CommandGatheringCoreTests",
             dependencies: ["CommandGatheringCore"]
+        ),
+        .testTarget(
+            name: "CommandGatheringAppTests",
+            dependencies: ["CommandGatheringApp"]
         )
     ]
 )
