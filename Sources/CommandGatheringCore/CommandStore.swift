@@ -62,10 +62,8 @@ public struct CommandStore: Sendable {
         }
 
         migrated.workspace.sessions = migrated.workspace.sessions.map { session in
-            guard session.workingDirectory == nil,
-                  let commandID = session.boundCommandID,
-                  let command = migrated.commands.first(where: { $0.id == commandID }),
-                  let workingDirectory = TerminalCoordinator.resolveWorkingDirectory(from: command.command) else {
+            guard let commandID = session.boundCommandID,
+                  let command = migrated.commands.first(where: { $0.id == commandID }) else {
                 return session
             }
 
@@ -73,7 +71,8 @@ public struct CommandStore: Sendable {
                 id: session.id,
                 title: session.title,
                 boundCommandID: session.boundCommandID,
-                workingDirectory: workingDirectory,
+                groupID: session.groupID ?? command.groupID,
+                workingDirectory: session.workingDirectory ?? TerminalCoordinator.resolveWorkingDirectory(from: command.command),
                 createdAt: session.createdAt
             )
         }

@@ -94,6 +94,26 @@ struct CommandListView: View {
             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             .help("新建临时终端，不保存命令")
 
+            Menu {
+                Toggle(
+                    isOn: Binding(
+                        get: { model.terminalFollowsSelectedGroup },
+                        set: { model.terminalFollowsSelectedGroup = $0 }
+                    )
+                ) {
+                    Label("终端跟随分组", systemImage: "rectangle.stack")
+                }
+            } label: {
+                Image(systemName: "gearshape")
+                    .frame(width: Theme.compactControlHeight, height: Theme.compactControlHeight)
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .foregroundStyle(Theme.primaryText)
+            .background(Theme.controlBackground)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            .help("设置")
+
             Button {
                 model.toggleThemeMode()
             } label: {

@@ -4,6 +4,7 @@ public struct TerminalSession: Equatable, Identifiable, Sendable {
     public var id: UUID
     public var title: String
     public var boundCommandID: UUID?
+    public var groupID: UUID?
     public var startupCommand: String?
     public var workingDirectory: String?
     public var createdAt: Date
@@ -12,6 +13,7 @@ public struct TerminalSession: Equatable, Identifiable, Sendable {
         id: UUID = UUID(),
         title: String,
         boundCommandID: UUID? = nil,
+        groupID: UUID? = nil,
         startupCommand: String? = nil,
         workingDirectory: String? = nil,
         createdAt: Date = Date()
@@ -19,6 +21,7 @@ public struct TerminalSession: Equatable, Identifiable, Sendable {
         self.id = id
         self.title = title
         self.boundCommandID = boundCommandID
+        self.groupID = groupID
         self.startupCommand = startupCommand
         self.workingDirectory = workingDirectory
         self.createdAt = createdAt
@@ -41,6 +44,7 @@ public struct PersistedTerminalSession: Codable, Equatable, Identifiable, Sendab
     public var id: UUID
     public var title: String
     public var boundCommandID: UUID?
+    public var groupID: UUID?
     public var workingDirectory: String?
     public var createdAt: Date
 
@@ -48,12 +52,14 @@ public struct PersistedTerminalSession: Codable, Equatable, Identifiable, Sendab
         id: UUID,
         title: String,
         boundCommandID: UUID?,
+        groupID: UUID? = nil,
         workingDirectory: String?,
         createdAt: Date
     ) {
         self.id = id
         self.title = title
         self.boundCommandID = boundCommandID
+        self.groupID = groupID
         self.workingDirectory = workingDirectory
         self.createdAt = createdAt
     }
@@ -65,6 +71,7 @@ public extension TerminalSession {
             id: persistedSession.id,
             title: persistedSession.title,
             boundCommandID: persistedSession.boundCommandID,
+            groupID: persistedSession.groupID,
             startupCommand: nil,
             workingDirectory: persistedSession.workingDirectory,
             createdAt: persistedSession.createdAt
@@ -76,6 +83,7 @@ public extension TerminalSession {
             id: id,
             title: title,
             boundCommandID: boundCommandID,
+            groupID: groupID,
             workingDirectory: workingDirectory,
             createdAt: createdAt
         )

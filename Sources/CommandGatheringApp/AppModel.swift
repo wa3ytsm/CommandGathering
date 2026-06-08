@@ -4,6 +4,8 @@ import Foundation
 @MainActor
 @Observable
 final class AppModel {
+    private static let terminalFollowsSelectedGroupKey = "terminalFollowsSelectedGroup"
+
     var configuration: CommandConfiguration
     var terminalCoordinator: TerminalCoordinator
     var presentedEditor: CommandEditorMode?
@@ -24,6 +26,15 @@ final class AppModel {
             UserDefaults.standard.set(themeMode.rawValue, forKey: "themeMode")
         }
     }
+    var terminalFollowsSelectedGroup: Bool {
+        didSet {
+            if terminalFollowsSelectedGroup {
+                assignUngroupedTerminalsToSelectedGroup()
+                _ = persist()
+            }
+            UserDefaults.standard.set(terminalFollowsSelectedGroup, forKey: Self.terminalFollowsSelectedGroupKey)
+        }
+    }
 
     private let store: CommandStore
     private let temporaryTerminalDirectory = StorageRootLocator.resolveDefaultWorkspaceDirectory().path
@@ -33,6 +44,7 @@ final class AppModel {
         self.isSidebarHidden = UserDefaults.standard.bool(forKey: "isSidebarHidden")
         let rawThemeMode = UserDefaults.standard.string(forKey: "themeMode") ?? AppThemeMode.dark.rawValue
         self.themeMode = AppThemeMode(rawValue: rawThemeMode) ?? .dark
+        self.terminalFollowsSelectedGroup = UserDefaults.standard.bool(forKey: Self.terminalFollowsSelectedGroupKey)
         self.terminalCoordinator = TerminalCoordinator()
         do {
             self.configuration = try store.loadOrCreate()
@@ -56,14 +68,40 @@ final class AppModel {
     }
 
     var selectedSessionID: UUID? {
-        terminalCoordinator.selectedSessionID
+        guard terminalFollowsSelectedGroup else {
+            return terminalCoordinator.selectedSessionID
+        }
+
+        let visibleSessions = visibleTerminalSessions
+        if let selectedSessionID = terminalCoordinator.selectedSessionID,
+           visibleSessions.contains(where: { $0.id == selectedSessionID }) {
+            return selectedSessionID
+        }
+        return visibleSessions.last?.id
+    }
+
+    var visibleTerminalSessions: [TerminalSession] {
+        guard terminalFollowsSelectedGroup,
+              let selectedGroupID = selectedGroup?.id else {
+            return terminalCoordinator.sessions
+        }
+
+        return terminalCoordinator.sessions.filter { $0.groupID == selectedGroupID }
     }
 
     var selectedSession: TerminalSession? {
         guard let selectedSessionID else {
             return nil
         }
-        return terminalCoordinator.sessions.first { $0.id == selectedSessionID }
+        return visibleTerminalSessions.first { $0.id == selectedSessionID }
+    }
+
+    func isTerminalSessionVisible(_ sessionID: UUID) -> Bool {
+        visibleTerminalSessions.contains { $0.id == sessionID }
+    }
+
+    func isTerminalSessionSelected(_ sessionID: UUID) -> Bool {
+        selectedSessionID == sessionID && isTerminalSessionVisible(sessionID)
     }
 
     var selectedGroup: CommandGroup? {
@@ -98,12 +136,15 @@ final class AppModel {
     }
 
     func createBlankTerminal() {
-        _ = terminalCoordinator.createBlankSession()
+        _ = terminalCoordinator.createBlankSession(groupID: groupIDForNewTerminal)
         _ = persist()
     }
 
     func createTemporaryTerminal() {
-        _ = terminalCoordinator.createTemporarySession(defaultDirectory: temporaryTerminalDirectory)
+        _ = terminalCoordinator.createTemporarySession(
+            defaultDirectory: temporaryTerminalDirectory,
+            groupID: groupIDForNewTerminal
+        )
         _ = persist()
     }
 
@@ -274,6 +315,17 @@ final class AppModel {
             errorMessage = "命令配置保存失败：\(error.localizedDescription)"
             return false
         }
+    }
+
+    private var groupIDForNewTerminal: UUID? {
+        terminalFollowsSelectedGroup ? selectedGroup?.id : nil
+    }
+
+    private func assignUngroupedTerminalsToSelectedGroup() {
+        guard let groupID = selectedGroup?.id else {
+            return
+        }
+        terminalCoordinator.assignUngroupedSessions(to: groupID)
     }
 }
 

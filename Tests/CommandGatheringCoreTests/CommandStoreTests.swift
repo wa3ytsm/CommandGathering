@@ -135,4 +135,28 @@ final class CommandStoreTests: XCTestCase {
 
         XCTAssertEqual(loaded.workspace, config.workspace)
     }
+
+    func testLoadOrCreateBackfillsGroupIDForPersistedBoundSessions() throws {
+        let root = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let store = CommandStore(rootDirectory: root)
+        let command = CommandConfiguration.defaultValue.commands[0]
+        let session = PersistedTerminalSession(
+            id: UUID(uuidString: "99999999-9999-9999-9999-999999999999")!,
+            title: command.name,
+            boundCommandID: command.id,
+            workingDirectory: "/tmp/restored",
+            createdAt: Date(timeIntervalSince1970: 1_800_000_000)
+        )
+        var config = CommandConfiguration.defaultValue
+        config.workspace = TerminalWorkspaceState(
+            sessions: [session],
+            selectedSessionID: session.id
+        )
+        try store.save(config)
+
+        let loaded = try store.loadOrCreate()
+
+        XCTAssertEqual(loaded.workspace.sessions.first?.groupID, command.groupID)
+    }
 }

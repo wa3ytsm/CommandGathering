@@ -13,14 +13,14 @@ struct TerminalTabsView: View {
                 .overlay(Theme.mutedText.opacity(0.22))
 
             ZStack {
-                if model.terminalCoordinator.sessions.isEmpty {
+                ForEach(model.terminalCoordinator.sessions) { session in
+                    TerminalPaneView(model: model, session: session)
+                        .opacity(model.isTerminalSessionSelected(session.id) ? 1 : 0)
+                        .allowsHitTesting(model.isTerminalSessionSelected(session.id))
+                }
+
+                if model.visibleTerminalSessions.isEmpty {
                     emptyState
-                } else {
-                    ForEach(model.terminalCoordinator.sessions) { session in
-                        TerminalPaneView(model: model, session: session)
-                            .opacity(model.selectedSessionID == session.id ? 1 : 0)
-                            .allowsHitTesting(model.selectedSessionID == session.id)
-                    }
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -36,10 +36,10 @@ struct TerminalTabsView: View {
         HStack(spacing: 8) {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 6) {
-                    ForEach(model.terminalCoordinator.sessions) { session in
+                    ForEach(model.visibleTerminalSessions) { session in
                         TerminalTabButton(
                             session: session,
-                            isSelected: model.selectedSessionID == session.id,
+                            isSelected: model.isTerminalSessionSelected(session.id),
                             select: { model.select(sessionID: session.id) },
                             close: { model.close(sessionID: session.id) }
                         )

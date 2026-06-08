@@ -16,14 +16,16 @@ public struct TerminalCoordinator: Sendable {
 
     public mutating func open(command: CommandItem) -> TerminalOpenResult {
         if let sessionID = commandBindings[command.id],
-           let session = sessions.first(where: { $0.id == sessionID }) {
-            selectedSessionID = session.id
-            return TerminalOpenResult(session: session, commandText: nil, shouldExecuteCommand: false)
+           let sessionIndex = sessions.firstIndex(where: { $0.id == sessionID }) {
+            sessions[sessionIndex].groupID = command.groupID
+            selectedSessionID = sessions[sessionIndex].id
+            return TerminalOpenResult(session: sessions[sessionIndex], commandText: nil, shouldExecuteCommand: false)
         }
 
         let session = TerminalSession(
             title: command.name,
             boundCommandID: command.id,
+            groupID: command.groupID,
             startupCommand: command.command,
             workingDirectory: Self.resolveWorkingDirectory(from: command.command)
         )
@@ -33,10 +35,11 @@ public struct TerminalCoordinator: Sendable {
         return TerminalOpenResult(session: session, commandText: command.command, shouldExecuteCommand: true)
     }
 
-    public mutating func createBlankSession() -> TerminalOpenResult {
+    public mutating func createBlankSession(groupID: UUID? = nil) -> TerminalOpenResult {
         let number = sessions.filter { $0.boundCommandID == nil }.count + 1
         let session = TerminalSession(
             title: "Shell \(number)",
+            groupID: groupID,
             workingDirectory: FileManager.default.homeDirectoryForCurrentUser.path
         )
         sessions.append(session)
@@ -44,9 +47,10 @@ public struct TerminalCoordinator: Sendable {
         return TerminalOpenResult(session: session, commandText: nil, shouldExecuteCommand: false)
     }
 
-    public mutating func createTemporarySession(defaultDirectory: String) -> TerminalOpenResult {
+    public mutating func createTemporarySession(defaultDirectory: String, groupID: UUID? = nil) -> TerminalOpenResult {
         let session = TerminalSession(
             title: "临时命令",
+            groupID: groupID,
             startupCommand: "cd \(defaultDirectory)",
             workingDirectory: defaultDirectory
         )
@@ -60,6 +64,12 @@ public struct TerminalCoordinator: Sendable {
             return
         }
         selectedSessionID = sessionID
+    }
+
+    public mutating func assignUngroupedSessions(to groupID: UUID) {
+        for index in sessions.indices where sessions[index].groupID == nil {
+            sessions[index].groupID = groupID
+        }
     }
 
     public mutating func close(sessionID: UUID) {
