@@ -41,6 +41,9 @@ struct RootView: View {
                 draft: GroupDraft(mode: mode)
             )
         }
+        .sheet(isPresented: $model.isSettingsPresented) {
+            SettingsView(model: model)
+        }
         .alert(
             "提示",
             isPresented: Binding(

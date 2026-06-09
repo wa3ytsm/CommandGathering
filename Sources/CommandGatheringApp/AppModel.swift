@@ -10,6 +10,7 @@ final class AppModel {
     var terminalCoordinator: TerminalCoordinator
     var presentedEditor: CommandEditorMode?
     var presentedGroupEditor: GroupEditorMode?
+    var isSettingsPresented = false
     var errorMessage: String?
     var selectedGroupID: UUID?
     var newGroupName = ""
@@ -154,6 +155,14 @@ final class AppModel {
 
     func toggleThemeMode() {
         themeMode = themeMode.toggled
+    }
+
+    func presentSettings() {
+        isSettingsPresented = true
+    }
+
+    func dismissSettings() {
+        isSettingsPresented = false
     }
 
     func select(group: CommandGroup) {
